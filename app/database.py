@@ -12,11 +12,12 @@ if not MONGO_URL:
 
 client = MongoClient(MONGO_URL)
 
-db = client["school_management"]
+db = client["scholl_management"]
 
 student_collection = db["students"]
 teachers_collection = db["teachers"]
 classes_collection = db["classes"]
+users_collection = db["users"]
 
 
 

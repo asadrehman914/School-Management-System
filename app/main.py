@@ -2,9 +2,74 @@ from fastapi import FastAPI,HTTPException
 from pydantic import BaseModel
 from app.database import student_collection,teachers_collection,classes_collection
 from bson import ObjectId
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+from app.database import users_collection
+from app.auth import hash_password, verify_password, create_access_token
+from pathlib import Path
+
+from fastapi import Depends
+
+from app.auth import verify_token
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+
 app = FastAPI(
-    title="School Management system"
+    title="School Management System",
+    description="""
+    API for managing a school's:
+
+    - Students
+    - Teachers
+    - Classes
+
+    This project uses FastAPI and MongoDB.
+    """,
+    version="1.0.0"
 )
+
+security = HTTPBearer(auto_error=False)
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials | None = Depends(security)
+):
+
+    if credentials is None:
+        raise HTTPException(
+            status_code=401,
+            detail="Please provide an access token"
+        )
+
+    token = credentials.credentials
+
+    payload = verify_token(token)
+
+    if payload is None:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or expired token"
+        )
+
+    return payload
+
+def admin_only(current_user: dict = Depends(get_current_user)):
+    if current_user.get("role") != "admin":
+        raise HTTPException(
+            status_code=403,
+            detail="Admin access required"
+        )
+
+    return current_user
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+app.mount(
+    "/static",
+    StaticFiles(directory=BASE_DIR / "frontend"),
+    name="static"
+)
+
+@app.get("/")
+def home():
+    return FileResponse(BASE_DIR / "frontend" / "index.html")
+
 
 class Student(BaseModel):
     name:str
@@ -12,9 +77,9 @@ class Student(BaseModel):
     class_id:str
 
 @app.post("/students")
-def create_student(student:Student):
+def create_student(student:Student,admin_user: dict = Depends(admin_only)):
     student_data=student.model_dump()
-
+    
     if not ObjectId.is_valid(student.class_id):
        raise HTTPException(
         status_code=400,
@@ -41,18 +106,19 @@ def create_student(student:Student):
 
 
 
-@app.get("/Students")
-def get_students():
+@app.get("/students")
+def get_students(
+    current_user: dict = Depends(get_current_user)
+):
     students = []
 
     for student in student_collection.find():
-
         school_class = None
 
         if student.get("class_id"):
             school_class = classes_collection.find_one({
-        "_id": ObjectId(student["class_id"])
-    })
+                "_id": ObjectId(student["class_id"])
+            })
 
         student["_id"] = str(student["_id"])
 
@@ -62,11 +128,7 @@ def get_students():
 
         students.append(student)
 
-    return {
-        "students": students
-    }
-
-
+    return {"students": students}
 @app.get("/students/search")
 def search_students(name: str):
 
@@ -121,7 +183,7 @@ def get_students_pagination(page: int = 1, limit: int = 5):
     }
 
 @app.get("/teachers/search")
-def search_teachers(subject: str):
+def search_teachers(subject: str,current_user: dict = Depends(get_current_user)):
 
     teachers = teachers_collection.find({
         "subject": {"$regex": subject, "$options": "i"}
@@ -137,7 +199,7 @@ def search_teachers(subject: str):
 
 
 @app.get("/teachers/pagination")
-def get_teachers_pagination(page: int = 1, limit: int = 5):
+def get_teachers_pagination(page: int = 1, limit: int = 5,current_user: dict = Depends(get_current_user)):
 
 
     if page < 1:
@@ -163,7 +225,7 @@ def get_teachers_pagination(page: int = 1, limit: int = 5):
 
 
 @app.get("/classes/search")
-def search_classes(class_name: str):
+def search_classes(class_name: str,current_user: dict = Depends(get_current_user)):
 
     classes = classes_collection.find({
         "class_name": {"$regex": class_name, "$options": "i"}
@@ -179,7 +241,7 @@ def search_classes(class_name: str):
 
 
 @app.get("/classes/pagination")
-def get_classes_pagination(page: int = 1, limit: int = 5):
+def get_classes_pagination(page: int = 1, limit: int = 5,current_user: dict = Depends(get_current_user)):
 
     if page < 1:
        raise HTTPException(status_code=400, detail="Page must be greater than 0")
@@ -206,7 +268,7 @@ def get_classes_pagination(page: int = 1, limit: int = 5):
 
 
 @app.get("/students/{student_id}")
-def get_student(student_id: str):
+def get_student(student_id: str,current_user: dict = Depends(get_current_user)):
 
     if not ObjectId.is_valid(student_id):
         raise HTTPException(
@@ -239,7 +301,7 @@ def get_student(student_id: str):
 
 
 @app.put("/students/{student_id}")
-def update_student(student_id: str, student: Student):
+def update_student(student_id: str, student: Student,admin_user: dict = Depends(admin_only)):
 
     if not ObjectId.is_valid(student_id):
         raise HTTPException(
@@ -290,7 +352,7 @@ class Studentupdate(BaseModel):
 
 
 @app.patch("/students/{student_id}")
-def patch_student(student_id: str, student: Studentupdate):
+def patch_student(student_id: str, student: Studentupdate,admin_user: dict = Depends(admin_only)):
 
     if not ObjectId.is_valid(student_id):
         raise HTTPException(
@@ -333,7 +395,8 @@ def patch_student(student_id: str, student: Studentupdate):
 
 
 @app.delete("/students/{student_id}")
-def delete_student(student_id: str):
+def delete_student(student_id: str,
+    admin_user: dict = Depends(admin_only)):
 
     if not ObjectId.is_valid(student_id):
         raise HTTPException(
@@ -365,7 +428,7 @@ class Teacher(BaseModel):
     qualification:str
 
 @app.post("/teachers")
-def create_teacher(teacher:Teacher):
+def create_teacher(teacher:Teacher,admin_user: dict = Depends(admin_only)):
     teacher_data=teacher.model_dump()
 
     result=teachers_collection.insert_one(teacher_data)
@@ -378,19 +441,20 @@ def create_teacher(teacher:Teacher):
     }
 
 
+
 @app.get("/teachers")
-def get_teachers():
-    teachers=[]
+def get_teachers(current_user: dict = Depends(get_current_user)):
+    teachers = []
 
     for teacher in teachers_collection.find():
-        teacher["_id"]=str(teacher["_id"])
-
+        teacher["_id"] = str(teacher["_id"])
         teachers.append(teacher)
 
-        return{"teacher":teachers}
+    return {"teacher": teachers}
+
 
 @app.get("/teachers/{teacher_id}")
-def get_teacher(teacher_id:str):
+def get_teacher(teacher_id:str,current_user: dict = Depends(get_current_user)):
     if not ObjectId.is_valid(teacher_id):
         raise HTTPException(
             status_code=400,
@@ -411,8 +475,8 @@ def get_teacher(teacher_id:str):
     teacher["_id"]=str(teacher["_id"])
     return {"Teacher":teacher}
 
-@app.put("/teacher/{teacher_id}")
-def update_teacher(teacher_id:str,teacher:Teacher):
+@app.put("/teachers/{teacher_id}")
+def update_teacher(teacher_id:str,teacher:Teacher,admin_user: dict = Depends(admin_only)):
     if not ObjectId.is_valid(teacher_id):
         raise HTTPException(
             status_code=400,
@@ -445,8 +509,8 @@ class TeacherUpdate(BaseModel):
         }
     }
 
-@app.patch("/teachers{teacher_id}")
-def patch_teacher(teacher_id:str,teacher:TeacherUpdate):
+@app.patch("/teachers/{teacher_id}")
+def patch_teacher(teacher_id:str,teacher:TeacherUpdate,admin_user: dict = Depends(admin_only)):
     if not ObjectId.is_valid(teacher_id):
         raise HTTPException(
             status_code=400,
@@ -476,7 +540,7 @@ def patch_teacher(teacher_id:str,teacher:TeacherUpdate):
 
 
 @app.delete("/teachers/{teacher_id}")
-def delete_teacher(teacher_id:str):
+def delete_teacher(teacher_id:str,admin_user: dict = Depends(admin_only)):
     if not ObjectId.is_valid(teacher_id):
         raise HTTPException(
             status_code=400,
@@ -502,7 +566,7 @@ class SchoolClass(BaseModel):
     room_number: int
 
 @app.post("/classes")
-def create_class(scholl_class:SchoolClass):
+def create_class(scholl_class:SchoolClass,admin_user: dict = Depends(admin_only)):
     class_data=scholl_class.model_dump()
     result = classes_collection.insert_one(class_data)
     class_data["_id"]=str(result.inserted_id)
@@ -512,7 +576,7 @@ def create_class(scholl_class:SchoolClass):
     }
 
 @app.get("/classes")
-def get_classes():
+def get_classes(current_user: dict = Depends(get_current_user)):
 
     classes = classes_collection.find()
 
@@ -528,7 +592,7 @@ def get_classes():
     }
 
 @app.get("/classes/{class_id}")
-def get_class(class_id:str):
+def get_class(class_id:str,current_user: dict = Depends(get_current_user)):
     if not ObjectId.is_valid(class_id):
         raise HTTPException(
             status_code=400,
@@ -549,8 +613,8 @@ def get_class(class_id:str):
 
     return scholl_class
 
-@app.put("/class/{class_id}")
-def update_class(class_id:str,scholl_class:SchoolClass):
+@app.put("/classes/{class_id}")
+def update_class(class_id:str,scholl_class:SchoolClass,admin_user: dict = Depends(admin_only)):
     if not ObjectId.is_valid(class_id):
         raise HTTPException(
             status_code=400,
@@ -582,34 +646,38 @@ class ClassUpdate(BaseModel):
         }
     }
 
-@app.patch("/class/{class_id}")
-def patch_class(class_id:str,scholl_class:ClassUpdate):
+@app.patch("/classes/{class_id}")
+def patch_class(class_id: str, scholl_class: ClassUpdate,admin_user: dict = Depends(admin_only)):
+
     if not ObjectId.is_valid(class_id):
         raise HTTPException(
             status_code=400,
-            detail="Id not found"
+            detail="Invalid Class ID"
         )
-    
 
+    update_data = scholl_class.model_dump(exclude_unset=True)
 
-    update_data=scholl_class.model_dump(exclude_unset=True)
+    if not update_data:
+        raise HTTPException(
+            status_code=400,
+            detail="Please provide at least one field to update"
+        )
 
-    if update_data is None:
+    result = classes_collection.update_one(
+        {"_id": ObjectId(class_id)},
+        {"$set": update_data}
+    )
+
+    if result.matched_count == 0:
         raise HTTPException(
             status_code=404,
             detail="Class not found"
         )
 
-    result = classes_collection.update_one(
-        {"_id":ObjectId(class_id)},
-        {"$set":update_data}
-    )
+    return {"message": "Class updated successfully"}
 
-    return{"message":"Update Successfully"}
-
-
-@app.delete("/class/{class_id}")
-def delete_class(class_id:str):
+@app.delete("/classes/{class_id}")
+def delete_class(class_id:str,admin_user: dict = Depends(admin_only)):
     if not ObjectId.is_valid(class_id):
         raise HTTPException(
             status_code=400,
@@ -654,3 +722,91 @@ def get_dashboard():
 
 
 
+
+
+class UserRegister(BaseModel):
+    name: str
+    email: str
+    password: str
+
+@app.post("/register")
+def register_user(user: UserRegister):
+
+    existing_user = users_collection.find_one({
+        "email": user.email
+    })
+
+    if existing_user:
+        raise HTTPException(
+            status_code=400,
+            detail="Email already registered"
+        )
+
+    hashed_password = hash_password(user.password)
+
+    new_user = {
+        "name": user.name,
+        "email": user.email,
+        "hashed_password": hashed_password,
+        "role": "user"
+    }
+
+    users_collection.insert_one(new_user)
+
+    return {
+        "message": "User registered successfully"
+    }
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
+@app.post("/login")
+def login_user(user: UserLogin):
+
+    existing_user = users_collection.find_one({
+        "email": user.email
+    })
+
+    if not existing_user:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid email or password"
+        )
+
+    password_correct = verify_password(
+        user.password,
+        existing_user["hashed_password"]
+    )
+
+    print("PASSWORD CORRECT:", password_correct)
+
+    if not password_correct:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid email or password"
+        )
+
+    token = create_access_token({
+        "sub": str(existing_user["_id"]),
+        "role": existing_user["role"]
+    })
+    print("TOKEN CREATED:", bool(token))
+
+    return {
+        "message": "Login successful",
+        "access_token": token,
+        "token_type": "bearer"
+    }
+
+
+
+
+@app.get("/profile")
+def get_profile(current_user: dict = Depends(get_current_user)):
+
+    return {
+        "message": "You are logged in!",
+        "user_id": current_user["sub"],
+        "role": current_user["role"]
+    }
