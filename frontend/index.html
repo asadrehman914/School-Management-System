@@ -1,1102 +1,125 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>School Management System | SchoolMS</title>
   <style>
-    :root {
-      --navy: #071b3b;
-      --navy2: #102b55;
-      --blue: #1769e8;
-      --blue2: #0b55ca;
-      --teal: #079b83;
-      --ink: #132544;
-      --muted: #71809a;
-      --line: #e5ebf4;
-      --bg: #f3f6fc;
-      --white: #fff;
-      --shadow: 0 10px 30px rgba(18, 43, 83, .07)
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, sans-serif
-    }
-
-    body {
-      background: var(--bg);
-      color: var(--ink);
-      min-height: 100vh
-    }
-
-    button,
-    input,
-    select {
-      font: inherit
-    }
-
-    button {
-      cursor: pointer
-    }
-
-    .sidebar {
-      position: fixed;
-      inset: 0 auto 0 0;
-      width: 252px;
-      background: linear-gradient(180deg, var(--navy), #0b2850);
-      color: #fff;
-      padding: 25px 17px;
-      display: flex;
-      flex-direction: column;
-      z-index: 20;
-      box-shadow: 8px 0 28px #102b5510
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 4px 9px 30px
-    }
-
-    .brand-icon {
-      width: 46px;
-      height: 46px;
-      border-radius: 14px;
-      background: linear-gradient(135deg, #18b8d2, #1769e8);
-      display: grid;
-      place-items: center;
-      font-size: 23px;
-      box-shadow: 0 7px 18px #087edb40
-    }
-
-    .brand h2 {
-      font-size: 18px;
-      letter-spacing: .2px
-    }
-
-    .brand small {
-      display: block;
-      color: #9fb8df;
-      font-size: 11px;
-      margin-top: 4px
-    }
-
-    .nav-label {
-      font-size: 10px;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      color: #7794bd;
-      padding: 8px 12px 12px
-    }
-
-    .nav-list {
-      display: grid;
-      gap: 6px
-    }
-
-    .nav-item {
-      width: 100%;
-      border: 0;
-      background: transparent;
-      color: #c7d5eb;
-      padding: 13px 14px;
-      border-radius: 11px;
-      display: flex;
-      align-items: center;
-      gap: 13px;
-      text-align: left;
-      font-size: 13px;
-      font-weight: 600;
-      transition: .2s
-    }
-
-    .nav-item:hover {
-      background: #ffffff12;
-      color: #fff
-    }
-
-    .nav-item.active {
-      background: linear-gradient(100deg, #1769e8, #168bdc);
-      color: #fff;
-      box-shadow: 0 7px 18px #0865d744
-    }
-
-    .nav-icon {
-      width: 22px;
-      text-align: center;
-      font-size: 17px
-    }
-
-    .sidebar-footer {
-      margin-top: auto;
-      padding: 18px 10px 3px;
-      border-top: 1px solid #ffffff16;
-      color: #8fa9ce;
-      font-size: 11px;
-      line-height: 1.8
-    }
-
-    .sidebar-footer strong {
-      color: #e8f1ff;
-      display: block;
-      font-size: 12px
-    }
-
-    .main {
-      margin-left: 252px;
-      padding: 25px 34px 40px;
-      min-height: 100vh;
-      max-width: 1800px
-    }
-
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 18px;
-      margin-bottom: 27px
-    }
-
-    .topbar-left {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      min-width: 0
-    }
-
-    .topbar h1 {
-      font-size: 25px;
-      letter-spacing: -.6px;
-      margin-bottom: 5px
-    }
-
-    .topbar p {
-      font-size: 12px;
-      color: var(--muted)
-    }
-
-    .topbar-actions {
-      display: flex;
-      align-items: center;
-      gap: 10px
-    }
-
-    .top-search {
-      width: min(280px, 25vw);
-      position: relative
-    }
-
-    .top-search input {
-      padding-left: 37px;
-      background: #fff
-    }
-
-    .top-search span {
-      position: absolute;
-      left: 13px;
-      top: 10px;
-      color: #8190a8
-    }
-
-    .role-pill {
-      border: 1px solid var(--line);
-      background: #fff;
-      border-radius: 10px;
-      padding: 10px 13px;
-      font-size: 12px;
-      color: #43536e;
-      white-space: nowrap
-    }
-
-    .btn {
-      border: 0;
-      border-radius: 9px;
-      padding: 10px 15px;
-      font-size: 12px;
-      font-weight: 700;
-      transition: .2s;
-      white-space: nowrap
-    }
-
-    .btn-primary {
-      background: var(--blue);
-      color: #fff;
-      box-shadow: 0 5px 12px #1769e82a
-    }
-
-    .btn-primary:hover {
-      background: var(--blue2);
-      transform: translateY(-1px)
-    }
-
-    .btn-light {
-      background: #edf2f9;
-      color: #40516d
-    }
-
-    .btn-light:hover {
-      background: #e1e9f4
-    }
-
-    .btn-edit {
-      background: #e8f1ff;
-      color: #1760c9;
-      padding: 7px 10px
-    }
-
-    .btn-delete {
-      background: #fff0f0;
-      color: #cf3e48;
-      padding: 7px 10px
-    }
-
-    .btn:disabled {
-      opacity: .55;
-      cursor: not-allowed
-    }
-
-    .welcome {
-      position: relative;
-      overflow: hidden;
-      border-radius: 18px;
-      padding: 27px 30px;
-      margin-bottom: 22px;
-      color: #fff;
-      background: linear-gradient(110deg, #0b3b91, #1769e8 72%, #2594ef);
-      box-shadow: 0 12px 26px #1769e822
-    }
-
-    .welcome:after {
-      content: "🎓";
-      position: absolute;
-      right: 38px;
-      top: 13px;
-      font-size: 78px;
-      opacity: .14;
-      transform: rotate(-12deg)
-    }
-
-    .welcome h2 {
-      font-size: 22px;
-      letter-spacing: -.4px;
-      margin-bottom: 7px
-    }
-
-    .welcome p {
-      font-size: 12px;
-      color: #e3efff
-    }
-
-    .user-welcome {
-      background: linear-gradient(110deg, #087968, #0aa58b)
-    }
-
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 16px;
-      margin-bottom: 21px
-    }
-
-    .stat-card,
-    .panel,
-    .shortcut {
-      background: #fff;
-      border: 1px solid var(--line);
-      border-radius: 15px;
-      box-shadow: var(--shadow)
-    }
-
-    .stat-card {
-      padding: 20px 21px;
-      position: relative;
-      overflow: hidden
-    }
-
-    .stat-card:after {
-      content: "";
-      position: absolute;
-      width: 90px;
-      height: 90px;
-      border-radius: 50%;
-      right: -35px;
-      bottom: -45px;
-      background: #eff5ff
-    }
-
-    .stat-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 15px
-    }
-
-    .stat-title {
-      font-size: 12px;
-      color: #6b7b96;
-      font-weight: 700
-    }
-
-    .stat-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 12px;
-      display: grid;
-      place-items: center;
-      font-size: 19px
-    }
-
-    .blue {
-      background: #e5efff;
-      color: #1769e8
-    }
-
-    .green {
-      background: #e1f8ef;
-      color: #079b72
-    }
-
-    .purple {
-      background: #f1eaff;
-      color: #8753d5
-    }
-
-    .stat-number {
-      font-size: 30px;
-      font-weight: 800;
-      letter-spacing: -1px;
-      color: #102b55
-    }
-
-    .stat-foot {
-      font-size: 10px;
-      color: #8b99ad;
-      margin-top: 4px
-    }
-
-    .panel {
-      padding: 22px;
-      margin-bottom: 18px
-    }
-
-    .panel-heading {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 14px;
-      margin-bottom: 18px
-    }
-
-    .panel-heading h2 {
-      font-size: 17px;
-      letter-spacing: -.3px
-    }
-
-    .panel-heading p {
-      font-size: 11px;
-      color: var(--muted);
-      margin-top: 5px
-    }
-
-    .muted {
-      color: var(--muted)
-    }
-
-    .overview-text {
-      font-size: 12px;
-      line-height: 1.8;
-      color: #667792
-    }
-
-    .dashboard-shortcuts {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 15px;
-      margin: 17px 0
-    }
-
-    .shortcut {
-      padding: 19px;
-      text-align: left;
-      transition: .2s;
-      color: inherit
-    }
-
-    .shortcut:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 14px 28px #102b5512;
-      border-color: #cbdcf7
-    }
-
-    .shortcut-icon {
-      font-size: 24px
-    }
-
-    .shortcut h3 {
-      font-size: 14px;
-      margin: 10px 0 5px;
-      color: #17345f
-    }
-
-    .shortcut p {
-      font-size: 11px;
-      color: var(--muted);
-      line-height: 1.6
-    }
-
-    .user-note {
-      padding: 15px 17px;
-      border-radius: 12px;
-      background: #e9fbf7;
-      border: 1px solid #b8eee1;
-      color: #146b5b;
-      font-size: 12px;
-      line-height: 1.7
-    }
-
-    .toolbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 17px
-    }
-
-    .search-box {
-      display: flex;
-      gap: 8px;
-      max-width: 500px;
-      width: 100%
-    }
-
-    input,
-    select {
-      width: 100%;
-      padding: 11px 12px;
-      border: 1px solid #dce4ef;
-      border-radius: 9px;
-      outline: none;
-      background: #fff;
-      color: var(--ink);
-      font-size: 12px;
-      transition: .2s
-    }
-
-    input:focus,
-    select:focus {
-      border-color: #5a98ed;
-      box-shadow: 0 0 0 3px #1769e814
-    }
-
-    .table-wrap {
-      width: 100%;
-      overflow-x: auto;
-      border: 1px solid #edf1f6;
-      border-radius: 11px
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 620px
-    }
-
-    th {
-      background: #f6f8fc;
-      color: #71809a;
-      text-align: left;
-      padding: 13px 14px;
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: .7px
-    }
-
-    td {
-      padding: 14px;
-      border-top: 1px solid #edf1f6;
-      font-size: 12px;
-      color: #465873
-    }
-
-    tbody tr:hover {
-      background: #f9fbff
-    }
-
-    .person {
-      font-weight: 700;
-      color: #18345f
-    }
-
-    .actions {
-      display: flex;
-      gap: 7px
-    }
-
-    .pagination {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      margin-top: 17px;
-      color: #78869c;
-      font-size: 11px
-    }
-
-    .page-buttons {
-      display: flex;
-      gap: 6px
-    }
-
-    .page-buttons button {
-      border: 1px solid #dce4ef;
-      background: #fff;
-      border-radius: 8px;
-      padding: 7px 11px;
-      color: #42536e;
-      font-size: 11px
-    }
-
-    .page-buttons button:disabled {
-      opacity: .4;
-      cursor: not-allowed
-    }
-
-    .empty {
-      text-align: center;
-      padding: 35px 15px;
-      color: #78869c;
-      font-size: 12px
-    }
-
-    .empty strong {
-      display: block;
-      color: #334866;
-      margin-bottom: 6px
-    }
-
-    .loading {
-      text-align: center;
-      padding: 35px;
-      color: #71809a;
-      font-size: 12px
-    }
-
-    .modal-backdrop {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: #071b3bb3;
-      backdrop-filter: blur(4px);
-      z-index: 40;
-      align-items: center;
-      justify-content: center;
-      padding: 18px
-    }
-
-    .modal-backdrop.show {
-      display: flex
-    }
-
-    .modal {
-      background: #fff;
-      width: 100%;
-      max-width: 490px;
-      max-height: 90vh;
-      overflow-y: auto;
-      border-radius: 17px;
-      padding: 25px;
-      box-shadow: 0 25px 80px #0004
-    }
-
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 21px
-    }
-
-    .modal-header h2 {
-      font-size: 18px
-    }
-
-    .close-btn {
-      border: 0;
-      background: #f0f3f8;
-      border-radius: 9px;
-      width: 33px;
-      height: 33px;
-      font-size: 19px;
-      color: #43536d
-    }
-
-    .form-group {
-      margin-bottom: 15px
-    }
-
-    .form-group label {
-      display: block;
-      font-size: 11px;
-      font-weight: 700;
-      color: #53627a;
-      margin-bottom: 7px
-    }
-
-    .form-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 9px;
-      margin-top: 20px
-    }
-
-    .message {
-      display: none;
-      padding: 12px 15px;
-      border-radius: 9px;
-      margin-bottom: 15px;
-      font-size: 12px
-    }
-
-    .message.error,
-    .auth-message.error {
-      display: block;
-      background: #fff0f0;
-      color: #a52e38
-    }
-
-    .message.success,
-    .auth-message.success {
-      display: block;
-      background: #e8fbf1;
-      color: #16734c
-    }
-
-    body:not(.authenticated) .sidebar,
-    body:not(.authenticated) .main {
-      display: none
-    }
-
-    body.authenticated #auth-view {
-      display: none
-    }
-
-    .auth-screen {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-      background: radial-gradient(circle at top left, #dceaff, transparent 42%), linear-gradient(135deg, #f5f8ff, #eef4fb)
-    }
-
-    .auth-card {
-      width: 100%;
-      max-width: 420px;
-      background: #fff;
-      border: 1px solid var(--line);
-      border-radius: 19px;
-      padding: 30px;
-      box-shadow: 0 20px 55px #102b5518
-    }
-
-    .auth-brand {
-      text-align: center;
-      margin-bottom: 25px
-    }
-
-    .auth-brand .brand-icon {
-      margin: 0 auto 12px
-    }
-
-    .auth-brand h1 {
-      font-size: 23px;
-      color: #102b55;
-      margin-bottom: 6px
-    }
-
-    .auth-brand p {
-      color: var(--muted);
-      font-size: 12px
-    }
-
-    .auth-card h2 {
-      font-size: 18px;
-      margin-bottom: 18px
-    }
-
-    .auth-switch {
-      text-align: center;
-      color: var(--muted);
-      font-size: 12px;
-      margin-top: 18px
-    }
-
-    .auth-switch button {
-      border: 0;
-      background: transparent;
-      color: var(--blue);
-      font-weight: 800
-    }
-
-    .auth-message {
-      display: none;
-      padding: 11px 13px;
-      border-radius: 8px;
-      margin-bottom: 15px;
-      font-size: 12px
-    }
-
-    .auth-submit {
-      width: 100%;
-      margin-top: 5px;
-      padding: 12px
-    }
-
-    .admin-only {
-      display: none !important
-    }
-
-    body.admin .admin-only {
-      display: initial !important
-    }
-
-    body.admin .actions.admin-only {
-      display: flex !important
-    }
-
-    body.user .admin-dashboard {
-      display: none !important
-    }
-
-    body.admin .user-dashboard {
-      display: none !important
-    }
-
-    .mobile-menu {
-      display: none;
-      border: 0;
-      background: #fff;
-      border: 1px solid var(--line);
-      border-radius: 9px;
-      width: 38px;
-      height: 38px;
-      font-size: 18px;
-      color: #17345f
-    }
-
-    @media(max-width:1050px) {
-      .main {
-        padding: 23px
-      }
-
-      .sidebar {
-        width: 225px
-      }
-
-      .main {
-        margin-left: 225px
-      }
-
-      .top-search {
-        display: none
-      }
-    }
-
-    @media(max-width:760px) {
-      .sidebar {
-        width: 100%;
-        height: auto;
-        position: relative;
-        padding: 13px 14px
-      }
-
-      .brand {
-        padding: 0 4px 13px
-      }
-
-      .nav-label,
-      .sidebar-footer {
-        display: none
-      }
-
-      .nav-list {
-        display: flex;
-        gap: 5px;
-        overflow-x: auto
-      }
-
-      .nav-item {
-        width: auto;
-        flex: 0 0 auto;
-        padding: 10px 12px
-      }
-
-      .main {
-        margin-left: 0;
-        padding: 18px 14px 30px
-      }
-
-      .topbar {
-        margin-bottom: 20px
-      }
-
-      .topbar h1 {
-        font-size: 21px
-      }
-
-      .role-pill {
-        display: none
-      }
-
-      .stats,
-      .dashboard-shortcuts {
-        grid-template-columns: 1fr
-      }
-
-      .welcome {
-        padding: 23px
-      }
-
-      .welcome:after {
-        right: 15px;
-        font-size: 58px
-      }
-
-      .panel {
-        padding: 16px
-      }
-
-      .toolbar {
-        align-items: stretch;
-        flex-direction: column
-      }
-
-      .search-box {
-        max-width: none
-      }
-
-      .panel-heading {
-        align-items: flex-start
-      }
-
-      .pagination {
-        align-items: flex-start;
-        flex-direction: column
-      }
-    }
-
-    @media(max-width:430px) {
-      .topbar {
-        align-items: flex-start
-      }
-
-      .topbar-actions .btn {
-        padding: 9px 11px
-      }
-
-      .welcome h2 {
-        font-size: 19px
-      }
-
-      .search-box {
-        flex-wrap: wrap
-      }
-
-      .search-box input {
-        flex: 1 1 100%
-      }
-    }
+    :root{--navy:#071b3b;--navy2:#102b55;--blue:#1769e8;--blue2:#0b55ca;--teal:#079b83;--ink:#132544;--muted:#71809a;--line:#e5ebf4;--bg:#f3f6fc;--white:#fff;--shadow:0 10px 30px rgba(18,43,83,.07)}
+    *{box-sizing:border-box;margin:0;padding:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+    body{background:var(--bg);color:var(--ink);min-height:100vh}button,input,select{font:inherit}button{cursor:pointer}
+    .sidebar{position:fixed;inset:0 auto 0 0;width:252px;background:linear-gradient(180deg,var(--navy),#0b2850);color:#fff;padding:25px 17px;display:flex;flex-direction:column;z-index:20;box-shadow:8px 0 28px #102b5510}
+    .brand{display:flex;align-items:center;gap:12px;padding:4px 9px 30px;cursor:pointer;user-select:none}.brand:focus-visible{outline:2px solid #7dd3fc;outline-offset:4px;border-radius:10px}.brand-icon{width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,#18b8d2,#1769e8);display:grid;place-items:center;font-size:23px;box-shadow:0 7px 18px #087edb40}.brand h2{font-size:18px;letter-spacing:.2px}.brand small{display:block;color:#9fb8df;font-size:11px;margin-top:4px}
+    .nav-label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#7794bd;padding:8px 12px 12px}.nav-list{display:grid;gap:6px}.nav-item{width:100%;border:0;background:transparent;color:#c7d5eb;padding:13px 14px;border-radius:11px;display:flex;align-items:center;gap:13px;text-align:left;font-size:13px;font-weight:600;transition:.2s}.nav-item:hover{background:#ffffff12;color:#fff}.nav-item.active{background:linear-gradient(100deg,#1769e8,#168bdc);color:#fff;box-shadow:0 7px 18px #0865d744}.nav-icon{width:22px;text-align:center;font-size:17px}.sidebar-footer{margin-top:auto;padding:18px 10px 3px;border-top:1px solid #ffffff16;color:#8fa9ce;font-size:11px;line-height:1.8}.sidebar-footer strong{color:#e8f1ff;display:block;font-size:12px}
+    .main{margin-left:252px;padding:25px 34px 40px;min-height:100vh;max-width:1800px}.topbar{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:27px}.topbar-left{display:flex;align-items:center;gap:14px;min-width:0}.topbar h1{font-size:25px;letter-spacing:-.6px;margin-bottom:5px}.topbar p{font-size:12px;color:var(--muted)}.topbar-actions{display:flex;align-items:center;gap:10px}.top-search{width:min(280px,25vw);position:relative}.top-search input{padding-left:37px;background:#fff}.top-search span{position:absolute;left:13px;top:10px;color:#8190a8}.role-pill{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 13px;font-size:12px;color:#43536e;white-space:nowrap}.btn{border:0;border-radius:9px;padding:10px 15px;font-size:12px;font-weight:700;transition:.2s;white-space:nowrap}.btn-primary{background:var(--blue);color:#fff;box-shadow:0 5px 12px #1769e82a}.btn-primary:hover{background:var(--blue2);transform:translateY(-1px)}.btn-light{background:#edf2f9;color:#40516d}.btn-light:hover{background:#e1e9f4}.btn-edit{background:#e8f1ff;color:#1760c9;padding:7px 10px}.btn-delete{background:#fff0f0;color:#cf3e48;padding:7px 10px}.btn:disabled{opacity:.55;cursor:not-allowed}
+    .welcome{position:relative;overflow:hidden;border-radius:18px;padding:27px 30px;margin-bottom:22px;color:#fff;background:linear-gradient(110deg,#0b3b91,#1769e8 72%,#2594ef);box-shadow:0 12px 26px #1769e822}.welcome:after{content:"🎓";position:absolute;right:38px;top:13px;font-size:78px;opacity:.14;transform:rotate(-12deg)}.welcome h2{font-size:22px;letter-spacing:-.4px;margin-bottom:7px}.welcome p{font-size:12px;color:#e3efff}.user-welcome{background:linear-gradient(110deg,#087968,#0aa58b)}
+    .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:21px}.stat-card,.panel,.shortcut{background:#fff;border:1px solid var(--line);border-radius:15px;box-shadow:var(--shadow)}.stat-card{padding:20px 21px;position:relative;overflow:hidden}.stat-card:after{content:"";position:absolute;width:90px;height:90px;border-radius:50%;right:-35px;bottom:-45px;background:#eff5ff}.stat-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:15px}.stat-title{font-size:12px;color:#6b7b96;font-weight:700}.stat-icon{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-size:19px}.blue{background:#e5efff;color:#1769e8}.green{background:#e1f8ef;color:#079b72}.purple{background:#f1eaff;color:#8753d5}.stat-number{font-size:30px;font-weight:800;letter-spacing:-1px;color:#102b55}.stat-foot{font-size:10px;color:#8b99ad;margin-top:4px}
+    .panel{padding:22px;margin-bottom:18px}.panel-heading{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:18px}.panel-heading h2{font-size:17px;letter-spacing:-.3px}.panel-heading p{font-size:11px;color:var(--muted);margin-top:5px}.muted{color:var(--muted)}.overview-text{font-size:12px;line-height:1.8;color:#667792}.dashboard-shortcuts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px;margin:17px 0}.shortcut{padding:19px;text-align:left;transition:.2s;color:inherit}.shortcut:hover{transform:translateY(-3px);box-shadow:0 14px 28px #102b5512;border-color:#cbdcf7}.shortcut-icon{font-size:24px}.shortcut h3{font-size:14px;margin:10px 0 5px;color:#17345f}.shortcut p{font-size:11px;color:var(--muted);line-height:1.6}.user-note{padding:15px 17px;border-radius:12px;background:#e9fbf7;border:1px solid #b8eee1;color:#146b5b;font-size:12px;line-height:1.7}
+    .toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:17px}.search-box{display:flex;gap:8px;max-width:500px;width:100%}input,select{width:100%;padding:11px 12px;border:1px solid #dce4ef;border-radius:9px;outline:none;background:#fff;color:var(--ink);font-size:12px;transition:.2s}input:focus,select:focus{border-color:#5a98ed;box-shadow:0 0 0 3px #1769e814}.table-wrap{width:100%;overflow-x:auto;border:1px solid #edf1f6;border-radius:11px}table{width:100%;border-collapse:collapse;min-width:620px}th{background:#f6f8fc;color:#71809a;text-align:left;padding:13px 14px;font-size:10px;text-transform:uppercase;letter-spacing:.7px}td{padding:14px;border-top:1px solid #edf1f6;font-size:12px;color:#465873}tbody tr:hover{background:#f9fbff}.person{font-weight:700;color:#18345f}.actions{display:flex;gap:7px;align-items:center}.role-select{min-width:110px;padding:7px 9px}.role-badge{display:inline-block;padding:5px 9px;border-radius:20px;background:#edf3ff;color:#2459a6;font-size:10px;font-weight:800;text-transform:uppercase}.role-badge.super{background:#e9fbf1;color:#16734c}
+    .pagination{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:17px;color:#78869c;font-size:11px}.page-controls{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap}.page-buttons{display:flex;align-items:center;gap:5px;flex-wrap:wrap}.page-buttons button{border:1px solid #dce4ef;background:#fff;border-radius:8px;min-width:34px;padding:8px 10px;color:#42536e;font-size:11px}.page-buttons button.active{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:800}.page-buttons button:disabled{opacity:.4;cursor:not-allowed}.page-ellipsis{padding:0 3px;color:#8996a9}.page-jump{display:flex;align-items:center;gap:6px;margin-left:4px}.page-jump input{width:65px;padding:8px;text-align:center}.empty{text-align:center;padding:35px 15px;color:#78869c;font-size:12px}.empty strong{display:block;color:#334866;margin-bottom:6px}.loading{text-align:center;padding:35px;color:#71809a;font-size:12px}
+    .modal-backdrop{display:none;position:fixed;inset:0;background:#071b3bb3;backdrop-filter:blur(4px);z-index:40;align-items:center;justify-content:center;padding:18px}.modal-backdrop.show{display:flex}.modal{background:#fff;width:100%;max-width:490px;max-height:90vh;overflow-y:auto;border-radius:17px;padding:25px;box-shadow:0 25px 80px #0004}.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:21px}.modal-header h2{font-size:18px}.close-btn{border:0;background:#f0f3f8;border-radius:9px;width:33px;height:33px;font-size:19px;color:#43536d}.form-group{margin-bottom:15px}.form-group label{display:block;font-size:11px;font-weight:700;color:#53627a;margin-bottom:7px}.form-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:20px}.message{display:none;padding:12px 15px;border-radius:9px;margin-bottom:15px;font-size:12px}.message.error,.auth-message.error{display:block;background:#fff0f0;color:#a52e38}.message.success,.auth-message.success{display:block;background:#e8fbf1;color:#16734c}
+    body:not(.authenticated) .sidebar,body:not(.authenticated) .main{display:none}body.authenticated #auth-view{display:none}.auth-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(circle at top left,#dceaff,transparent 42%),linear-gradient(135deg,#f5f8ff,#eef4fb)}.auth-card{width:100%;max-width:420px;background:#fff;border:1px solid var(--line);border-radius:19px;padding:30px;box-shadow:0 20px 55px #102b5518}.auth-brand{text-align:center;margin-bottom:25px}.auth-brand .brand-icon{margin:0 auto 12px}.auth-brand h1{font-size:23px;color:#102b55;margin-bottom:6px}.auth-brand p{color:var(--muted);font-size:12px}.auth-card h2{font-size:18px;margin-bottom:18px}.auth-switch{text-align:center;color:var(--muted);font-size:12px;margin-top:18px}.auth-switch button{border:0;background:transparent;color:var(--blue);font-weight:800}.auth-message{display:none;padding:11px 13px;border-radius:8px;margin-bottom:15px;font-size:12px}.auth-submit{width:100%;margin-top:5px}.admin-only{display:none!important}body.admin .admin-only{display:initial!important}body.admin .actions.admin-only{display:flex!important}body.user .admin-dashboard{display:none!important}body.admin .user-dashboard{display:none!important}body.super-admin .super-admin-only{display:flex!important}
+    .class-picker{border:1px solid #dce4ef;border-radius:10px;padding:10px;max-height:190px;overflow:auto;background:#fbfcff}.class-option{display:flex;align-items:center;gap:9px;padding:8px;border-radius:7px;font-size:12px;color:#40516d}.class-option:hover{background:#edf4ff}.class-option input{width:auto;margin:0}.field-hint{font-size:10px;color:#8492a8;margin-top:6px}
+    @media(max-width:1050px){.main{padding:23px}.sidebar{width:225px}.main{margin-left:225px}.top-search{display:none}}
+    @media(max-width:760px){.sidebar{width:100%;height:auto;position:relative;padding:13px 14px}.brand{padding:0 4px 13px}.nav-label,.sidebar-footer{display:none}.nav-list{display:flex;gap:5px;overflow-x:auto}.nav-item{width:auto;flex:0 0 auto;padding:10px 12px}.main{margin-left:0;padding:18px 14px 30px}.topbar{margin-bottom:20px}.topbar h1{font-size:21px}.role-pill{display:none}.stats,.dashboard-shortcuts{grid-template-columns:1fr}.welcome{padding:23px}.welcome:after{right:15px;font-size:58px}.panel{padding:16px}.toolbar{align-items:stretch;flex-direction:column}.search-box{max-width:none}.panel-heading{align-items:flex-start}.pagination{align-items:flex-start;flex-direction:column}.page-controls{justify-content:flex-start}}
+    @media(max-width:430px){.topbar{align-items:flex-start}.topbar-actions .btn{padding:9px 11px}.welcome h2{font-size:19px}.search-box{flex-wrap:wrap}.search-box input{flex:1 1 100%}.page-jump{margin-left:0}}
   </style>
 </head>
-
 <body>
   <section class="auth-screen" id="auth-view">
     <div class="auth-card">
-      <div class="auth-brand">
-        <div class="brand-icon">🎓</div>
-        <h1>SchoolMS</h1>
-        <p>School Management System</p>
-      </div>
+      <div class="auth-brand"><div class="brand-icon">🎓</div><h1>SchoolMS</h1><p>School Management System</p></div>
       <div id="auth-message" class="auth-message"></div>
       <form id="login-form" onsubmit="loginUser(event)">
         <h2>Welcome back</h2>
-        <div class="form-group"><label>Email</label><input name="email" type="email" required autocomplete="username"
-            placeholder="Enter your email"></div>
-        <div class="form-group"><label>Password</label><input name="password" type="password" required
-            autocomplete="current-password" placeholder="Enter your password"></div>
+        <div class="form-group"><label>Email</label><input name="email" type="email" required autocomplete="username" placeholder="Enter your email"></div>
+        <div class="form-group"><label>Password</label><input name="password" type="password" required autocomplete="current-password" placeholder="Enter your password"></div>
         <button class="btn btn-primary auth-submit" id="login-button" type="submit">Sign in</button>
-        <div class="auth-switch">Don't have an account? <button type="button"
-            onclick="showRegisterForm()">Register</button></div>
+        <div class="auth-switch">Don't have an account? <button type="button" onclick="showRegisterForm()">Register</button></div>
       </form>
       <form id="register-form" style="display:none" onsubmit="registerUser(event)">
         <h2>Create account</h2>
-        <div class="form-group"><label>Name</label><input name="name" required maxlength="100" autocomplete="name"
-            placeholder="Enter your name"></div>
-        <div class="form-group"><label>Email</label><input name="email" type="email" required autocomplete="email"
-            placeholder="Enter your email"></div>
-        <div class="form-group"><label>Password</label><input name="password" type="password" required minlength="8"
-            autocomplete="new-password" placeholder="At least 8 characters"></div>
+        <div class="form-group"><label>Name</label><input name="name" required maxlength="100" autocomplete="name" placeholder="Enter your name"></div>
+        <div class="form-group"><label>Email</label><input name="email" type="email" required autocomplete="email" placeholder="Enter your email"></div>
+        <div class="form-group"><label>Password</label><input name="password" type="password" required minlength="8" autocomplete="new-password" placeholder="At least 8 characters"></div>
         <button class="btn btn-primary auth-submit" id="register-button" type="submit">Create account</button>
-        <div class="auth-switch">Already registered? <button type="button" onclick="showLoginForm()">Sign in</button>
-        </div>
+        <div class="auth-switch">Already registered? <button type="button" onclick="showLoginForm()">Sign in</button></div>
       </form>
     </div>
   </section>
-
   <aside class="sidebar">
-    <div class="brand">
-      <div class="brand-icon">🎓</div>
-      <div>
-        <h2>SchoolMS</h2><small id="sidebar-subtitle">School Administration</small>
-      </div>
-    </div>
+    <div class="brand" role="button" tabindex="0" aria-label="Go to Dashboard" title="Go to Dashboard" onclick="showDashboard()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showDashboard();}"><div class="brand-icon">🎓</div><div><h2>SchoolMS</h2><small id="sidebar-subtitle">School Administration</small></div></div>
     <div class="nav-label" id="nav-label">Main Menu</div>
     <div class="nav-list">
-      <button class="nav-item active" id="nav-dashboard" onclick="showDashboard()"><span
-          class="nav-icon">▦</span>Dashboard</button>
-      <button class="nav-item" id="nav-students" onclick="showStudents()"><span
-          class="nav-icon">👨‍🎓</span>Students</button>
-      <button class="nav-item" id="nav-teachers" onclick="showTeachers()"><span
-          class="nav-icon">👩‍🏫</span>Teachers</button>
+      <button class="nav-item active" id="nav-dashboard" onclick="showDashboard()"><span class="nav-icon">▦</span>Dashboard</button>
+      <button class="nav-item" id="nav-students" onclick="showStudents()"><span class="nav-icon">👨‍🎓</span>Students</button>
+      <button class="nav-item" id="nav-teachers" onclick="showTeachers()"><span class="nav-icon">👩‍🏫</span>Teachers</button>
       <button class="nav-item" id="nav-classes" onclick="showClasses()"><span class="nav-icon">🏫</span>Classes</button>
+      <button class="nav-item super-admin-only" id="nav-users" onclick="showUsers()" style="display:none"><span class="nav-icon">👥</span>User Management</button>
     </div>
     <div class="sidebar-footer">School Management System<br>SchoolMS · Version 1.0</div>
   </aside>
-
   <main class="main">
     <header class="topbar">
-      <div class="topbar-left">
-        <div>
-          <h1 id="page-title">Dashboard</h1>
-          <p id="page-subtitle">Welcome to your school portal.</p>
-        </div>
-      </div>
-      <div class="topbar-actions">
-        <div class="top-search"><span>⌕</span><input id="global-search" placeholder="Search records..."
-            onkeydown="if(event.key==='Enter') globalSearch()"></div>
-        <div class="role-pill" id="user-label">● Logged in</div><button class="btn btn-light"
-          onclick="logoutUser()">Logout</button>
-      </div>
+      <div class="topbar-left"><div><h1 id="page-title">Dashboard</h1><p id="page-subtitle">Welcome to your school portal.</p></div></div>
+      <div class="topbar-actions"><div class="top-search"><span>⌕</span><input id="global-search" placeholder="Search records..." onkeydown="if(event.key==='Enter') globalSearch()"></div><div class="role-pill" id="user-label">● Logged in</div><button type="button" class="btn btn-light" id="logout-button" onclick="logoutUser()">Logout</button></div>
     </header>
     <div id="message" class="message"></div>
     <section id="dashboard-view">
       <div class="admin-dashboard">
-        <div class="welcome">
-          <h2>Welcome back, Admin! 👋</h2>
-          <p>Manage your school's students, teachers and classes from one place.</p>
-        </div>
+        <div class="welcome"><h2>Welcome back, Admin! 👋</h2><p>Manage your school's students, teachers and classes from one place.</p></div>
         <div class="stats">
-          <div class="stat-card">
-            <div class="stat-top"><span class="stat-title">TOTAL STUDENTS</span><span
-                class="stat-icon blue">👨‍🎓</span></div>
-            <div class="stat-number" id="students-count">0</div>
-            <div class="stat-foot">Registered student records</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-top"><span class="stat-title">TOTAL TEACHERS</span><span
-                class="stat-icon green">👩‍🏫</span></div>
-            <div class="stat-number" id="teachers-count">0</div>
-            <div class="stat-foot">Teaching staff records</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-top"><span class="stat-title">TOTAL CLASSES</span><span class="stat-icon purple">🏫</span>
-            </div>
-            <div class="stat-number" id="classes-count">0</div>
-            <div class="stat-foot">Available classrooms</div>
-          </div>
+          <div class="stat-card"><div class="stat-top"><span class="stat-title">TOTAL STUDENTS</span><span class="stat-icon blue">👨‍🎓</span></div><div class="stat-number" id="students-count">0</div><div class="stat-foot">Registered student records</div></div>
+          <div class="stat-card"><div class="stat-top"><span class="stat-title">TOTAL TEACHERS</span><span class="stat-icon green">👩‍🏫</span></div><div class="stat-number" id="teachers-count">0</div><div class="stat-foot">Teaching staff records</div></div>
+          <div class="stat-card"><div class="stat-top"><span class="stat-title">TOTAL CLASSES</span><span class="stat-icon purple">🏫</span></div><div class="stat-number" id="classes-count">0</div><div class="stat-foot">Available classrooms</div></div>
         </div>
-        <div class="panel">
-          <div class="panel-heading">
-            <div>
-              <h2>Administration Overview</h2>
-              <p>Your school at a glance</p>
-            </div>
-          </div>
-          <p class="overview-text">Use the navigation menu to manage student records, teacher information and classroom
-            details. Administrators can add, update, search and delete records. Your changes are securely stored in the
-            school database.</p>
-        </div>
+        <div class="panel"><div class="panel-heading"><div><h2>Administration Overview</h2><p>Your school at a glance</p></div></div><p class="overview-text">Use the navigation menu to manage student records, teacher information and classroom details. Administrators can add, update, search and delete records. Your changes are securely stored in the school database.</p></div>
       </div>
       <div class="user-dashboard">
-        <div class="welcome user-welcome">
-          <h2>Welcome to your School Portal 👋</h2>
-          <p>View school information, browse records and stay connected.</p>
-        </div>
-        <div class="panel">
-          <div class="panel-heading">
-            <div>
-              <h2>School Directory</h2>
-              <p>Explore students, teachers and classrooms</p>
-            </div>
-          </div>
-          <p class="overview-text">Choose a section below or use the menu to browse and search school records. Your
-            account has read-only access; record changes are managed by an administrator.</p>
-        </div>
+        <div class="welcome user-welcome"><h2>Welcome to your School Portal 👋</h2><p>View school information, browse records and stay connected.</p></div>
+        <div class="panel"><div class="panel-heading"><div><h2>School Directory</h2><p>Explore students, teachers and classrooms</p></div></div><p class="overview-text">Choose a section below or use the menu to browse and search school records. Your account has read-only access; record changes are managed by an administrator.</p></div>
         <div class="dashboard-shortcuts">
-          <button class="shortcut" onclick="showStudents()"><span class="shortcut-icon">👨‍🎓</span>
-            <h3>View Students</h3>
-            <p>Browse student records and class assignments.</p>
-          </button>
-          <button class="shortcut" onclick="showTeachers()"><span class="shortcut-icon">👩‍🏫</span>
-            <h3>View Teachers</h3>
-            <p>Browse teacher names, subjects and qualifications.</p>
-          </button>
-          <button class="shortcut" onclick="showClasses()"><span class="shortcut-icon">🏫</span>
-            <h3>View Classes</h3>
-            <p>Check class sections and room information.</p>
-          </button>
+          <button class="shortcut" onclick="showStudents()"><span class="shortcut-icon">👨‍🎓</span><h3>View Students</h3><p>Browse student records and class assignments.</p></button>
+          <button class="shortcut" onclick="showTeachers()"><span class="shortcut-icon">👩‍🏫</span><h3>View Teachers</h3><p>Browse teacher names, subjects and qualifications.</p></button>
+          <button class="shortcut" onclick="showClasses()"><span class="shortcut-icon">🏫</span><h3>View Classes</h3><p>Check class sections and room information.</p></button>
         </div>
-        <div class="user-note"><strong>Read-only access:</strong> You can view and search school information. Contact an
-          administrator if a record needs to be changed.</div>
+        <div class="user-note"><strong>Read-only access:</strong> You can view and search school information. Contact an administrator if a record needs to be changed.</div>
       </div>
     </section>
     <section id="management-view" style="display:none"></section>
   </main>
-
-  <div class="modal-backdrop" id="modal-backdrop">
-    <div class="modal">
-      <div class="modal-header">
-        <h2 id="modal-title">Add Record</h2><button class="close-btn" onclick="closeModal()">×</button>
-      </div>
-      <form id="record-form" onsubmit="saveRecord(event)">
-        <div id="form-fields"></div>
-        <div class="form-actions"><button type="button" class="btn btn-light"
-            onclick="closeModal()">Cancel</button><button type="submit" class="btn btn-primary" id="save-button">Save
-            Record</button></div>
-      </form>
-    </div>
-  </div>
-
+  <div class="modal-backdrop" id="modal-backdrop"><div class="modal"><div class="modal-header"><h2 id="modal-title">Add Record</h2><button class="close-btn" onclick="closeModal()">×</button></div><form id="record-form" onsubmit="saveRecord(event)"><div id="form-fields"></div><div class="form-actions"><button type="button" class="btn btn-light" onclick="closeModal()">Cancel</button><button type="submit" class="btn btn-primary" id="save-button">Save Record</button></div></form></div></div>
   <script>
     const API = "", PAGE_SIZE = 5;
-    let currentSection = "dashboard", currentRecords = [], currentPage = 1, editingId = null, classOptions = [], currentRole = "user";
+    let currentSection = "dashboard", currentRecords = [], currentPage = 1, currentSearch = "", editingId = null, classOptions = [], currentRole = "user";
     const config = {
-      students: { title: "Students", subtitle: "View student records and class assignments.", listUrl: "/students", searchUrl: "/students/search", searchParam: "name", responseKey: "students" },
-      teachers: { title: "Teachers", subtitle: "View teacher information and qualifications.", listUrl: "/teachers", searchUrl: "/teachers/search", searchParam: "subject", responseKey: "teacher" },
-      classes: { title: "Classes", subtitle: "View classrooms, sections and room numbers.", listUrl: "/classes", searchUrl: "/classes/search", searchParam: "class_name", responseKey: "classes" }
+      students: { title: "Students", subtitle: "View student records and class assignments.", listUrl: "/students", searchParam: "name", responseKey: "students" },
+      teachers: { title: "Teachers", subtitle: "View teacher information and qualifications.", listUrl: "/teachers", searchParam: "subject", responseKey: "teacher" },
+      classes: { title: "Classes", subtitle: "View classrooms, sections and room numbers.", listUrl: "/classes", searchParam: "class_name", responseKey: "classes" }
     };
+    function hasManagementAccess() { return currentRole === "admin" || currentRole === "super_admin"; }
+    function isSuperAdmin() { return currentRole === "super_admin"; }
     function escapeHTML(value) { return String(value ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[c])); }
     async function apiRequest(url, options = {}) {
       const token = localStorage.getItem("access_token"), headers = { ...(options.headers || {}) };
       if (token) headers.Authorization = "Bearer " + token;
       let response;
       try { response = await fetch(API + url, { ...options, headers }); }
-      catch (error) { throw new Error("Server se connection nahi ho saka. FastAPI server check karo."); }
+      catch (error) { throw new Error("Server se connection nahi ho saka. Please check your server."); }
       const data = await response.json().catch(() => ({}));
       if (!response.ok) { let detail = data.detail || data.message || "Request failed"; if (Array.isArray(detail)) detail = detail.map(x => x.msg).join(", "); throw new Error(detail); }
       return data;
     }
     function applyRole(role) {
       currentRole = role || "user";
-      document.body.classList.toggle("admin", currentRole === "admin");
-      document.body.classList.toggle("user", currentRole !== "admin");
+      const canManage = hasManagementAccess();
+      document.body.classList.toggle("admin", canManage);
+      document.body.classList.toggle("user", !canManage);
+      document.body.classList.toggle("super-admin", isSuperAdmin());
       document.getElementById("user-label").textContent = "● Role: " + currentRole;
-      document.getElementById("sidebar-subtitle").textContent = currentRole === "admin" ? "School Administration" : "School Portal";
-      document.getElementById("nav-label").textContent = currentRole === "admin" ? "Administration Menu" : "School Menu";
+      document.getElementById("sidebar-subtitle").textContent = isSuperAdmin() ? "Super Administration" : canManage ? "School Administration" : "School Portal";
+      document.getElementById("nav-label").textContent = isSuperAdmin() ? "Super Admin Menu" : canManage ? "Administration Menu" : "School Menu";
+      document.getElementById("nav-users").style.display = isSuperAdmin() ? "flex" : "none";
     }
     function showAuthMessage(text, type = "error") { const box = document.getElementById("auth-message"); box.textContent = text; box.className = "auth-message" + (text ? " " + type : ""); }
     function showLoginForm(message = "") { document.getElementById("login-form").style.display = "block"; document.getElementById("register-form").style.display = "none"; showAuthMessage(message, message ? "success" : "error"); }
@@ -1118,63 +141,112 @@
       try { const profile = await apiRequest("/profile"); applyRole(profile.role); document.body.classList.add("authenticated"); await showDashboard(); }
       catch (error) { localStorage.removeItem("access_token"); showLoginForm("Your session expired. Please sign in again."); }
     }
-    function logoutUser() { localStorage.removeItem("access_token"); window.location.reload(); }
+    function logoutUser() {
+      localStorage.removeItem("access_token"); document.body.classList.remove("authenticated", "admin", "user", "super-admin");
+      currentRole = "user"; currentSection = "dashboard"; currentRecords = []; currentSearch = ""; currentPage = 1;
+      document.getElementById("management-view").innerHTML = ""; document.getElementById("modal-backdrop").classList.remove("show");
+      showLoginForm("You have been logged out successfully.");
+    }
     function showMessage(text, type = "success") { const box = document.getElementById("message"); box.textContent = text; box.className = "message " + type; clearTimeout(showMessage.timer); showMessage.timer = setTimeout(() => { box.className = "message"; box.textContent = ""; }, 4000); }
     function setActiveNav(section) { document.querySelectorAll(".nav-item").forEach(button => button.classList.remove("active")); const active = document.getElementById("nav-" + section); if (active) active.classList.add("active"); }
     async function loadDashboard() {
-      if (currentRole !== "admin") return;
-      try { const data = await apiRequest("/dashboard"); document.getElementById("students-count").textContent = data.total_students ?? 0; document.getElementById("teachers-count").textContent = data.total_teachers ?? 0; document.getElementById("classes-count").textContent = data.total_classes ?? 0; }
-      catch (error) { showMessage("Dashboard statistics load nahi ho sakin: " + error.message, "error"); }
+      if (!hasManagementAccess()) return;
+      const targets = [["students-count", "students"], ["teachers-count", "teachers"], ["classes-count", "classes"]];
+      await Promise.all(targets.map(async ([elementId, section]) => {
+        try { const records = await loadRecords(section); document.getElementById(elementId).textContent = records.length; }
+        catch (error) { document.getElementById(elementId).textContent = "—"; console.error(section + " count could not load:", error); }
+      }));
     }
     async function showDashboard() {
-      currentSection = "dashboard"; setActiveNav("dashboard");
-      document.getElementById("page-title").textContent = currentRole === "admin" ? "Admin Dashboard" : "User Dashboard";
-      document.getElementById("page-subtitle").textContent = currentRole === "admin" ? "School management and administration." : "View school information and records.";
+      currentSection = "dashboard"; currentSearch = ""; currentPage = 1; setActiveNav("dashboard");
+      document.getElementById("global-search").value = "";
+      document.getElementById("page-title").textContent = isSuperAdmin() ? "Super Admin Dashboard" : hasManagementAccess() ? "Admin Dashboard" : "User Dashboard";
+      document.getElementById("page-subtitle").textContent = hasManagementAccess() ? "School management and administration." : "View school information and records.";
       document.getElementById("dashboard-view").style.display = "block"; document.getElementById("management-view").style.display = "none"; await loadDashboard();
     }
-    async function loadRecords(section, searchValue = "") {
-      const settings = config[section]; let url = settings.listUrl;
-      if (searchValue.trim()) url = settings.searchUrl + "?" + settings.searchParam + "=" + encodeURIComponent(searchValue.trim());
-      const data = await apiRequest(url, { method: "GET" }); return data[settings.responseKey] || [];
+    async function loadRecords(section) {
+      const settings = config[section], data = await apiRequest(settings.listUrl, { method: "GET" });
+      let records = data[settings.responseKey] || data[section] || data[section.slice(0, -1)] || data.records || data.data || [];
+      return Array.isArray(records) ? records : [];
     }
     async function showSection(section, searchValue = "") {
-      currentSection = section; currentPage = 1; setActiveNav(section);
+      currentSection = section; currentPage = 1; currentSearch = searchValue.trim(); setActiveNav(section);
+      document.getElementById("global-search").value = currentSearch;
       document.getElementById("dashboard-view").style.display = "none";
       const box = document.getElementById("management-view"); box.style.display = "block";
       document.getElementById("page-title").textContent = config[section].title; document.getElementById("page-subtitle").textContent = config[section].subtitle;
       box.innerHTML = '<div class="panel loading">Loading records...</div>';
-      try { currentRecords = await loadRecords(section, searchValue); renderTable(); }
-      catch (error) { box.innerHTML = '<div class="panel"><div class="empty"><strong>Unable to load records</strong>' + escapeHTML(error.message) + '</div></div>'; }
+      try {
+        const allRecords = await loadRecords(section), term = currentSearch.toLowerCase();
+        currentRecords = term ? allRecords.filter(item => String(item[config[section].searchParam] ?? "").toLowerCase().includes(term)) : allRecords;
+        renderTable();
+      } catch (error) { box.innerHTML = '<div class="panel"><div class="empty"><strong>Unable to load records</strong>' + escapeHTML(error.message) + '</div></div>'; }
     }
     function showStudents() { showSection("students"); }
     function showTeachers() { showSection("teachers"); }
     function showClasses() { showSection("classes"); }
+    function buildPageButtons(totalPages) {
+      const pages = new Set([1, totalPages, currentPage, currentPage - 1, currentPage + 1]);
+      if (currentPage <= 3) [2, 3, 4].forEach(p => pages.add(p));
+      if (currentPage >= totalPages - 2) [totalPages - 1, totalPages - 2, totalPages - 3].forEach(p => pages.add(p));
+      const sorted = [...pages].filter(p => p >= 1 && p <= totalPages).sort((a, b) => a - b);
+      let output = "", previous = 0;
+      sorted.forEach(page => {
+        if (previous && page - previous > 1) output += '<span class="page-ellipsis">...</span>';
+        output += `<button type="button" class="${page === currentPage ? "active" : ""}" ${page === currentPage ? 'aria-current="page"' : ""} onclick="goToPage(${page})">${page}</button>`;
+        previous = page;
+      });
+      return output;
+    }
     function renderTable() {
       const section = currentSection, container = document.getElementById("management-view");
       const placeholders = { students: "Search by student name...", teachers: "Search by subject...", classes: "Search by class name..." };
-      let headers = "", rows = ""; const totalPages = Math.max(1, Math.ceil(currentRecords.length / PAGE_SIZE));
-      if (currentPage > totalPages) currentPage = totalPages;
-      const start = (currentPage - 1) * PAGE_SIZE, visible = currentRecords.slice(start, start + PAGE_SIZE);
+      let headers = "", rows = "", totalPages = Math.max(1, Math.ceil(currentRecords.length / PAGE_SIZE));
+      currentPage = Math.min(Math.max(1, currentPage), totalPages);
+      const start = (currentPage - 1) * PAGE_SIZE, visible = currentRecords.slice(start, start + PAGE_SIZE), canManage = hasManagementAccess();
       if (section === "students") {
-        headers = "<th>Student Name</th><th>Age</th><th>Class</th><th>Section</th>" + (currentRole === "admin" ? "<th>Actions</th>" : "");
-        rows = visible.map(item => `<tr><td class="person">${escapeHTML(item.name)}</td><td>${escapeHTML(item.age)}</td><td>${escapeHTML(item.class_details?.class_name || item.class_name || "—")}</td><td>${escapeHTML(item.class_details?.section || "—")}</td>${currentRole === "admin" ? `<td><div class="actions"><button class="btn btn-edit" onclick="openEditForm('${escapeHTML(item._id)}')">Edit</button><button class="btn btn-delete" onclick="deleteRecord('${escapeHTML(item._id)}')">Delete</button></div></td>` : ""}</tr>`).join("");
+        headers = "<th>Student Name</th><th>Age</th><th>Class</th><th>Section</th>" + (canManage ? "<th>Actions</th>" : "");
+        rows = visible.map(item => `<tr><td class="person">${escapeHTML(item.name)}</td><td>${escapeHTML(item.age)}</td><td>${escapeHTML(item.class_details?.class_name || item.class_name || "—")}</td><td>${escapeHTML(item.class_details?.section || "—")}</td>${canManage ? `<td><div class="actions"><button class="btn btn-edit" onclick="openEditForm('${escapeHTML(item._id)}')">Edit</button><button class="btn btn-delete" onclick="deleteRecord('${escapeHTML(item._id)}')">Delete</button></div></td>` : ""}</tr>`).join("");
       } else if (section === "teachers") {
-        headers = "<th>Teacher Name</th><th>Age</th><th>Subject</th><th>Qualification</th>" + (currentRole === "admin" ? "<th>Actions</th>" : "");
-        rows = visible.map(item => `<tr><td class="person">${escapeHTML(item.name)}</td><td>${escapeHTML(item.age)}</td><td>${escapeHTML(item.subject)}</td><td>${escapeHTML(item.qualification)}</td>${currentRole === "admin" ? `<td><div class="actions"><button class="btn btn-edit" onclick="openEditForm('${escapeHTML(item._id)}')">Edit</button><button class="btn btn-delete" onclick="deleteRecord('${escapeHTML(item._id)}')">Delete</button></div></td>` : ""}</tr>`).join("");
+        headers = "<th>Teacher Name</th><th>Age</th><th>Subject</th><th>Qualification</th><th>Assigned Classes</th>" + (canManage ? "<th>Actions</th>" : "");
+        rows = visible.map(item => {
+          const assignedClasses = (item.assigned_classes || []).map(schoolClass => `${escapeHTML(schoolClass.class_name || "Class")} - ${escapeHTML(schoolClass.section || "")}`).join(", ") || "—";
+          return `<tr><td class="person">${escapeHTML(item.name)}</td><td>${escapeHTML(item.age)}</td><td>${escapeHTML(item.subject)}</td><td>${escapeHTML(item.qualification)}</td><td>${assignedClasses}</td>${canManage ? `<td><div class="actions"><button class="btn btn-edit" onclick="openEditForm('${escapeHTML(item._id)}')">Edit</button><button class="btn btn-delete" onclick="deleteRecord('${escapeHTML(item._id)}')">Delete</button></div></td>` : ""}</tr>`;
+        }).join("");
       } else {
-        headers = "<th>Class Name</th><th>Section</th><th>Room Number</th>" + (currentRole === "admin" ? "<th>Actions</th>" : "");
-        rows = visible.map(item => `<tr><td class="person">${escapeHTML(item.class_name)}</td><td>${escapeHTML(item.section)}</td><td>${escapeHTML(item.room_number)}</td>${currentRole === "admin" ? `<td><div class="actions"><button class="btn btn-edit" onclick="openEditForm('${escapeHTML(item._id)}')">Edit</button><button class="btn btn-delete" onclick="deleteRecord('${escapeHTML(item._id)}')">Delete</button></div></td>` : ""}</tr>`).join("");
+        headers = "<th>Class Name</th><th>Section</th><th>Room Number</th>" + (canManage ? "<th>Actions</th>" : "");
+        rows = visible.map(item => `<tr><td class="person">${escapeHTML(item.class_name)}</td><td>${escapeHTML(item.section)}</td><td>${escapeHTML(item.room_number)}</td>${canManage ? `<td><div class="actions"><button class="btn btn-edit" onclick="openEditForm('${escapeHTML(item._id)}')">Edit</button><button class="btn btn-delete" onclick="deleteRecord('${escapeHTML(item._id)}')">Delete</button></div></td>` : ""}</tr>`).join("");
       }
-      const addButton = currentRole === "admin" ? `<button class="btn btn-primary" onclick="openAddForm()">+ Add ${section === "classes" ? "Class" : section.slice(0, -1)}</button>` : "";
-      container.innerHTML = `<div class="panel"><div class="panel-heading"><div><h2>${config[section].title} Records</h2><p>${currentRecords.length} record(s) found</p></div>${addButton}</div><div class="toolbar"><form class="search-box" onsubmit="searchRecords(event)"><input id="search-input" placeholder="${placeholders[section]}"><button class="btn btn-light" type="submit">Search</button><button class="btn btn-light" type="button" onclick="clearSearch()">Reset</button></form></div><div class="table-wrap"><table><thead><tr>${headers}</tr></thead><tbody>${rows}</tbody></table>${visible.length === 0 ? '<div class="empty"><strong>No records found</strong>Try another search.</div>' : ""}</div><div class="pagination"><span>Showing ${visible.length ? start + 1 : 0} to ${Math.min(start + PAGE_SIZE, currentRecords.length)} of ${currentRecords.length} records</span><div class="page-buttons"><button onclick="changePage(-1)" ${currentPage === 1 ? "disabled" : ""}>Previous</button><button disabled>Page ${currentPage} of ${totalPages}</button><button onclick="changePage(1)" ${currentPage >= totalPages ? "disabled" : ""}>Next</button></div></div></div>`;
+      const addButton = canManage ? `<button class="btn btn-primary" onclick="openAddForm()">+ Add ${section === "classes" ? "Class" : section.slice(0, -1)}</button>` : "";
+      const pagination = `<div class="pagination"><span>Showing ${visible.length ? start + 1 : 0} to ${Math.min(start + PAGE_SIZE, currentRecords.length)} of ${currentRecords.length} records</span><div class="page-controls"><div class="page-buttons"><button type="button" onclick="changePage(-1)" ${currentPage === 1 ? "disabled" : ""}>Previous</button>${buildPageButtons(totalPages)}<button type="button" onclick="changePage(1)" ${currentPage >= totalPages ? "disabled" : ""}>Next</button></div><form class="page-jump" onsubmit="jumpToPage(event)"><label for="page-number">Go to</label><input id="page-number" type="number" min="1" max="${totalPages}" placeholder="Page" aria-label="Page number"><button class="btn btn-light" type="submit">Go</button></form></div></div>`;
+      container.innerHTML = `<div class="panel"><div class="panel-heading"><div><h2>${config[section].title} Records</h2><p>${currentRecords.length} record(s) found</p></div>${addButton}</div><div class="toolbar"><form class="search-box" onsubmit="searchRecords(event)"><input id="search-input" value="${escapeHTML(currentSearch)}" placeholder="${placeholders[section]}"><button class="btn btn-light" type="submit">Search</button><button class="btn btn-light" type="button" onclick="clearSearch()">Reset</button></form></div><div class="table-wrap"><table><thead><tr>${headers}</tr></thead><tbody>${rows}</tbody></table>${visible.length === 0 ? '<div class="empty"><strong>No records found</strong>Try another search.</div>' : ""}</div>${pagination}</div>`;
     }
-    function changePage(direction) { const pages = Math.max(1, Math.ceil(currentRecords.length / PAGE_SIZE)); currentPage = Math.min(pages, Math.max(1, currentPage + direction)); renderTable(); }
-    async function searchRecords(event) { event.preventDefault(); const value = document.getElementById("search-input").value; await showSection(currentSection, value); const input = document.getElementById("search-input"); if (input) input.value = value; }
-    async function clearSearch() { await showSection(currentSection); }
-    function globalSearch() { const value = document.getElementById("global-search").value.trim(); if (!value) return; if (currentSection === "dashboard") return showMessage("Pehle Students, Teachers ya Classes section select karo.", "error"); showSection(currentSection, value); }
+    function goToPage(page) {
+      const totalPages = Math.max(1, Math.ceil(currentRecords.length / PAGE_SIZE));
+      if (!Number.isInteger(page) || page < 1 || page > totalPages) return;
+      currentPage = page; renderTable();
+    }
+    function changePage(direction) { goToPage(currentPage + direction); }
+    function jumpToPage(event) {
+      event.preventDefault();
+      const input = document.getElementById("page-number"), page = Number(input.value);
+      const totalPages = Math.max(1, Math.ceil(currentRecords.length / PAGE_SIZE));
+      if (!input.value.trim() || !Number.isInteger(page) || page < 1 || page > totalPages) {
+        showMessage(`Please enter a page number between 1 and ${totalPages}.`, "error"); return;
+      }
+      goToPage(page);
+    }
+    async function searchRecords(event) { event.preventDefault(); const value = document.getElementById("search-input").value; await showSection(currentSection, value); }
+    async function clearSearch() { await showSection(currentSection, ""); }
+    function globalSearch() {
+      const value = document.getElementById("global-search").value.trim();
+      if (currentSection === "dashboard") { showMessage("Pehle Students, Teachers ya Classes section select karo.", "error"); return; }
+      if (currentSection === "users") { filterUsers(value); return; }
+      showSection(currentSection, value);
+    }
     async function getClassesForStudent() { const data = await apiRequest("/classes"); return data.classes || []; }
-    async function openAddForm() { if (currentRole !== "admin") return showMessage("Admin access required", "error"); editingId = null; await buildForm(null); }
-    async function openEditForm(id) { if (currentRole !== "admin") return showMessage("Admin access required", "error"); const record = currentRecords.find(item => item._id === id); if (!record) return showMessage("Record not found. Refresh the list.", "error"); editingId = id; await buildForm(record); }
+    async function openAddForm() { if (!hasManagementAccess()) return showMessage("Admin access required", "error"); editingId = null; await buildForm(null); }
+    async function openEditForm(id) { if (!hasManagementAccess()) return showMessage("Admin access required", "error"); const record = currentRecords.find(item => item._id === id); if (!record) return showMessage("Record not found. Refresh the list.", "error"); editingId = id; await buildForm(record); }
     async function buildForm(record) {
       const section = currentSection, isEdit = Boolean(record); let fields = "";
       if (section === "students") {
@@ -1183,33 +255,138 @@
         const selected = record?.class_id || "";
         fields = `<div class="form-group"><label>Student Name</label><input name="name" required value="${escapeHTML(record?.name || "")}"></div><div class="form-group"><label>Age</label><input name="age" type="number" min="1" max="100" required value="${escapeHTML(record?.age ?? "")}"></div><div class="form-group"><label>Class</label><select name="class_id" required><option value="">Select class</option>${classOptions.map(item => `<option value="${escapeHTML(item._id)}" ${String(item._id) === String(selected) ? "selected" : ""}>${escapeHTML(item.class_name)} - Section ${escapeHTML(item.section)}</option>`).join("")}</select></div>`;
       }
-      if (section === "teachers") fields = `<div class="form-group"><label>Teacher Name</label><input name="name" required value="${escapeHTML(record?.name || "")}"></div><div class="form-group"><label>Age</label><input name="age" type="number" min="18" max="100" required value="${escapeHTML(record?.age ?? "")}"></div><div class="form-group"><label>Subject</label><input name="subject" required value="${escapeHTML(record?.subject || "")}"></div><div class="form-group"><label>Qualification</label><input name="qualification" required value="${escapeHTML(record?.qualification || "")}"></div>`;
+      if (section === "teachers") {
+        try { classOptions = await getClassesForStudent(); } catch (error) { showMessage(error.message, "error"); return; }
+        const selectedIds = record?.class_ids || (record?.assigned_classes || []).map(item => String(item._id));
+        fields = `<div class="form-group"><label>Teacher Name</label><input name="name" required value="${escapeHTML(record?.name || "")}"></div>
+          <div class="form-group"><label>Age</label><input name="age" type="number" min="18" max="100" required value="${escapeHTML(record?.age ?? "")}"></div>
+          <div class="form-group"><label>Subject</label><input name="subject" required value="${escapeHTML(record?.subject || "")}"></div>
+          <div class="form-group"><label>Qualification</label><input name="qualification" required value="${escapeHTML(record?.qualification || "")}"></div>
+          <div class="form-group"><label>Assign Classes</label><div class="class-picker">${classOptions.length ? classOptions.map(item => `<label class="class-option"><input type="checkbox" name="class_ids" value="${escapeHTML(item._id)}" ${selectedIds.map(String).includes(String(item._id)) ? "checked" : ""}>${escapeHTML(item.class_name)} - Section ${escapeHTML(item.section)}</label>`).join("") : "No classes found. Pehle Classes section mein class add karein."}</div><p class="field-hint">Aap aik teacher ko multiple classes assign kar sakte hain.</p></div>`;
+      }
       if (section === "classes") fields = `<div class="form-group"><label>Class Name</label><input name="class_name" required value="${escapeHTML(record?.class_name || "")}"></div><div class="form-group"><label>Section</label><input name="section" required value="${escapeHTML(record?.section || "")}"></div><div class="form-group"><label>Room Number</label><input name="room_number" type="number" min="1" required value="${escapeHTML(record?.room_number ?? "")}"></div>`;
       document.getElementById("modal-title").textContent = (isEdit ? "Edit " : "Add ") + (section === "classes" ? "Class" : section.slice(0, -1));
       document.getElementById("save-button").textContent = isEdit ? "Update Record" : "Save Record"; document.getElementById("form-fields").innerHTML = fields; document.getElementById("modal-backdrop").classList.add("show");
     }
     function closeModal() { document.getElementById("modal-backdrop").classList.remove("show"); document.getElementById("record-form").reset(); editingId = null; }
     async function saveRecord(event) {
-      event.preventDefault(); if (currentRole !== "admin") return showMessage("Admin access required", "error");
+      event.preventDefault(); if (!hasManagementAccess()) return showMessage("Admin access required", "error");
       const form = document.getElementById("record-form"), record = Object.fromEntries(new FormData(form).entries());
+      if (currentSection === "teachers") record.class_ids = [...form.querySelectorAll('input[name="class_ids"]:checked')].map(input => input.value);
       if (record.age !== undefined) record.age = Number(record.age); if (record.room_number !== undefined) record.room_number = Number(record.room_number);
       const section = currentSection, isEdit = Boolean(editingId), endpoints = { students: "/students", teachers: "/teachers", classes: "/classes" }, url = isEdit ? endpoints[section] + "/" + editingId : endpoints[section], button = document.getElementById("save-button");
       button.disabled = true; button.textContent = "Saving...";
-      try { await apiRequest(url, { method: isEdit ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(record) }); closeModal(); showMessage(section.slice(0, -1) + (isEdit ? " updated successfully." : " added successfully.")); await showSection(section); await loadDashboard(); }
+      try { await apiRequest(url, { method: isEdit ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(record) }); closeModal(); showMessage(section.slice(0, -1) + (isEdit ? " updated successfully." : " added successfully.")); await showSection(section, currentSearch); await loadDashboard(); }
       catch (error) { showMessage(error.message, "error"); }
       finally { button.disabled = false; button.textContent = isEdit ? "Update Record" : "Save Record"; }
     }
     async function deleteRecord(id) {
-      if (currentRole !== "admin") return showMessage("Admin access required", "error");
+      if (!hasManagementAccess()) return showMessage("Admin access required", "error");
       const section = currentSection, label = section === "classes" ? "class" : section.slice(0, -1);
       if (!confirm("Are you sure you want to delete this " + label + "?")) return;
       const endpoints = { students: "/students/", teachers: "/teachers/", classes: "/classes/" };
-      try { await apiRequest(endpoints[section] + id, { method: "DELETE" }); showMessage(label.charAt(0).toUpperCase() + label.slice(1) + " deleted successfully."); await showSection(section); await loadDashboard(); }
+      try { await apiRequest(endpoints[section] + id, { method: "DELETE" }); showMessage(label.charAt(0).toUpperCase() + label.slice(1) + " deleted successfully."); await showSection(section, currentSearch); await loadDashboard(); }
       catch (error) { showMessage(error.message, "error"); }
     }
+
+    // SUPER ADMIN: USER MANAGEMENT
+    let allUsers = [], userSearch = "";
+    async function showUsers() {
+      if (!isSuperAdmin()) return showMessage("Only Super Admin can access User Management.", "error");
+      currentSection = "users"; currentPage = 1; userSearch = ""; setActiveNav("users");
+      document.getElementById("global-search").value = "";
+      document.getElementById("dashboard-view").style.display = "none";
+      document.getElementById("management-view").style.display = "block";
+      document.getElementById("page-title").textContent = "User Management";
+      document.getElementById("page-subtitle").textContent = "View users and manage their roles.";
+      document.getElementById("management-view").innerHTML = '<div class="panel loading">Loading users...</div>';
+      try {
+        const data = await apiRequest("/admin/users");
+        allUsers = data.users || [];
+        renderUsers();
+      } catch (error) {
+        document.getElementById("management-view").innerHTML = '<div class="panel"><div class="empty"><strong>Unable to load users</strong>' + escapeHTML(error.message) + '</div></div>';
+      }
+    }
+    function filterUsers(value) {
+      userSearch = value.trim().toLowerCase();
+      currentPage = 1;
+      renderUsers();
+    }
+    function renderUsers() {
+      const container = document.getElementById("management-view");
+      if (currentSection !== "users" || !isSuperAdmin()) return;
+      const filtered = allUsers.filter(user =>
+        String(user.name || "").toLowerCase().includes(userSearch) ||
+        String(user.email || "").toLowerCase().includes(userSearch) ||
+        String(user.role || "").toLowerCase().includes(userSearch)
+      );
+      const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+      currentPage = Math.min(Math.max(1, currentPage), totalPages);
+      const start = (currentPage - 1) * PAGE_SIZE;
+      const visible = filtered.slice(start, start + PAGE_SIZE);
+      const rows = visible.map(user => {
+        const isProtected = user.role === "super_admin";
+        const roleControl = isProtected
+          ? '<span class="role-badge super">Super Admin</span>'
+          : `<div class="actions"><select class="role-select" id="role-${escapeHTML(user._id)}"><option value="user" ${user.role === "user" ? "selected" : ""}>User</option><option value="admin" ${user.role === "admin" ? "selected" : ""}>Admin</option></select><button class="btn btn-edit" onclick="changeUserRole('${escapeHTML(user._id)}')">Save Role</button></div>`;
+        const deleteControl = isProtected ? '<span class="muted">Protected</span>' : `<button class="btn btn-delete" onclick="deleteManagedUser('${escapeHTML(user._id)}')">Delete</button>`;
+        return `<tr><td class="person">${escapeHTML(user.name)}</td><td>${escapeHTML(user.email)}</td><td><span class="role-badge ${isProtected ? "super" : ""}">${escapeHTML(user.role)}</span></td><td>${roleControl}</td><td>${deleteControl}</td></tr>`;
+      }).join("");
+      const pagination = `<div class="pagination"><span>Showing ${visible.length ? start + 1 : 0} to ${Math.min(start + PAGE_SIZE, filtered.length)} of ${filtered.length} users</span><div class="page-controls"><div class="page-buttons"><button type="button" onclick="changeUserPage(-1)" ${currentPage === 1 ? "disabled" : ""}>Previous</button>${buildUserPageButtons(totalPages)}<button type="button" onclick="changeUserPage(1)" ${currentPage >= totalPages ? "disabled" : ""}>Next</button></div><form class="page-jump" onsubmit="jumpUserPage(event)"><label for="user-page-number">Go to</label><input id="user-page-number" type="number" min="1" max="${totalPages}" placeholder="Page"><button class="btn btn-light" type="submit">Go</button></form></div></div>`;
+      container.innerHTML = `<div class="panel"><div class="panel-heading"><div><h2>Registered Users</h2><p>${filtered.length} user(s) found. Only Super Admin can manage roles and accounts.</p></div></div><div class="toolbar"><form class="search-box" onsubmit="event.preventDefault();filterUsers(document.getElementById('users-search').value)"><input id="users-search" value="${escapeHTML(userSearch)}" placeholder="Search by name, email or role..."><button class="btn btn-light" type="submit">Search</button><button class="btn btn-light" type="button" onclick="filterUsers('');document.getElementById('global-search').value=''">Reset</button></form></div><div class="table-wrap"><table><thead><tr><th>Name</th><th>Email</th><th>Current Role</th><th>Change Role</th><th>Account</th></tr></thead><tbody>${rows}</tbody></table>${visible.length === 0 ? '<div class="empty"><strong>No users found</strong>Try another search.</div>' : ""}</div>${pagination}</div>`;
+    }
+    function buildUserPageButtons(totalPages) {
+      const pages = new Set([1, totalPages, currentPage, currentPage - 1, currentPage + 1]);
+      if (currentPage <= 3) [2, 3, 4].forEach(p => pages.add(p));
+      if (currentPage >= totalPages - 2) [totalPages - 1, totalPages - 2, totalPages - 3].forEach(p => pages.add(p));
+      const sorted = [...pages].filter(p => p >= 1 && p <= totalPages).sort((a,b) => a-b);
+      let output = "", previous = 0;
+      sorted.forEach(page => { if (previous && page - previous > 1) output += '<span class="page-ellipsis">...</span>'; output += `<button type="button" class="${page === currentPage ? "active" : ""}" onclick="goToUserPage(${page})">${page}</button>`; previous = page; });
+      return output;
+    }
+    function goToUserPage(page) {
+      const filtered = allUsers.filter(user => String(user.name || "").toLowerCase().includes(userSearch) || String(user.email || "").toLowerCase().includes(userSearch) || String(user.role || "").toLowerCase().includes(userSearch));
+      const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+      if (!Number.isInteger(page) || page < 1 || page > totalPages) return;
+      currentPage = page; renderUsers();
+    }
+    function changeUserPage(direction) { goToUserPage(currentPage + direction); }
+    function jumpUserPage(event) {
+      event.preventDefault();
+      const input = document.getElementById("user-page-number"), page = Number(input.value);
+      const filtered = allUsers.filter(user => String(user.name || "").toLowerCase().includes(userSearch) || String(user.email || "").toLowerCase().includes(userSearch) || String(user.role || "").toLowerCase().includes(userSearch));
+      const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+      if (!input.value.trim() || !Number.isInteger(page) || page < 1 || page > totalPages) return showMessage(`Enter a page between 1 and ${totalPages}.`, "error");
+      goToUserPage(page);
+    }
+    async function changeUserRole(userId) {
+      if (!isSuperAdmin()) return showMessage("Only Super Admin can change roles.", "error");
+      const select = document.getElementById("role-" + userId);
+      if (!select) return;
+      const newRole = select.value;
+      if (!["admin", "user"].includes(newRole)) return showMessage("Invalid role selected.", "error");
+      if (!confirm(`Change this user's role to ${newRole}?`)) return;
+      try {
+        const data = await apiRequest(`/admin/users/${userId}/role`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ role: newRole }) });
+        showMessage(data.message || "User role updated successfully.");
+        await showUsers();
+      } catch (error) { showMessage(error.message, "error"); }
+    }
+    async function deleteManagedUser(userId) {
+      if (!isSuperAdmin()) return showMessage("Only Super Admin can delete users.", "error");
+      const user = allUsers.find(item => item._id === userId);
+      if (!user || user.role === "super_admin") return showMessage("Super Admin account is protected.", "error");
+      if (!confirm(`Are you sure you want to delete ${user.name || "this user"}? This cannot be undone.`)) return;
+      try {
+        const data = await apiRequest(`/admin/users/${userId}`, { method: "DELETE" });
+        showMessage(data.message || "User deleted successfully.");
+        await showUsers();
+      } catch (error) { showMessage(error.message, "error"); }
+    }
+
     document.getElementById("modal-backdrop").addEventListener("click", event => { if (event.target.id === "modal-backdrop") closeModal(); });
     checkAuthOnLoad();
   </script>
 </body>
-
 </html>

@@ -1,5 +1,5 @@
 from fastapi import FastAPI,HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel,Field
 from app.database import student_collection,teachers_collection,classes_collection
 from bson import ObjectId
 from fastapi.staticfiles import StaticFiles
@@ -7,7 +7,8 @@ from fastapi.responses import FileResponse
 from app.database import users_collection
 from app.auth import hash_password, verify_password, create_access_token
 from pathlib import Path
-
+from dotenv import load_dotenv
+import os
 from fastapi import Depends
 
 from app.auth import verify_token
@@ -27,6 +28,37 @@ app = FastAPI(
     version="1.0.0"
 )
 
+load_dotenv()
+
+SUPER_ADMIN_NAME = os.getenv("SUPER_ADMIN_NAME")
+SUPER_ADMIN_EMAIL = os.getenv("SUPER_ADMIN_EMAIL")
+SUPER_ADMIN_PASSWORD = os.getenv("SUPER_ADMIN_PASSWORD")
+
+
+@app.on_event("startup")
+def create_super_admin():
+
+    existing_admin = users_collection.find_one({
+        "role": "super_admin"
+    })
+
+    if existing_admin:
+        print("Super Admin already exists")
+        return
+
+    if not SUPER_ADMIN_NAME or not SUPER_ADMIN_EMAIL or not SUPER_ADMIN_PASSWORD:
+        raise ValueError("Super Admin details missing in .env")
+
+    new_admin = {
+        "name": SUPER_ADMIN_NAME,
+        "email": SUPER_ADMIN_EMAIL,
+        "hashed_password": hash_password(SUPER_ADMIN_PASSWORD),
+        "role": "super_admin"
+    }
+
+    users_collection.insert_one(new_admin)
+
+    print("Super Admin created successfully")
 security = HTTPBearer(auto_error=False)
 def get_current_user(
     credentials: HTTPAuthorizationCredentials | None = Depends(security)
@@ -48,14 +80,159 @@ def get_current_user(
             detail="Invalid or expired token"
         )
 
-    return payload
+    user_id = payload.get("sub")
+
+    if not user_id or not ObjectId.is_valid(user_id):
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid user token"
+        )
+
+    current_user = users_collection.find_one({
+        "_id": ObjectId(user_id)
+    })
+
+    if current_user is None:
+        raise HTTPException(
+            status_code=401,
+            detail="User not found"
+        )
+
+    return {
+        "sub": str(current_user["_id"]),
+        "name": current_user["name"],
+        "email": current_user["email"],
+        "role": current_user["role"]
+    }
+
+def get_super_admin(
+    current_user: dict = Depends(get_current_user)
+):
+
+    if current_user["role"] != "super_admin":
+        raise HTTPException(
+            status_code=403,
+            detail="Only Super Admin can perform this action"
+        )
+
+    return current_user
+
+@app.get("/admin/users")
+def get_all_users(
+    current_user: dict = Depends(get_super_admin)
+):
+
+    users = users_collection.find(
+        {},
+        {"hashed_password": 0}
+    )
+
+    result = []
+
+    for user in users:
+        user["_id"] = str(user["_id"])
+        result.append(user)
+
+    return {
+        "users": result
+    }
+
+class UpdateUserRole(BaseModel):
+    role: str
+
+
+
+@app.put("/admin/users/{user_id}/role")
+def update_user_role(
+    user_id: str,
+    user: UpdateUserRole,
+    current_user: dict = Depends(get_super_admin)
+):
+    if user.role not in ["admin", "user"]:
+        raise HTTPException(
+            status_code=400,
+            detail="Role must be admin or user"
+        )
+
+    if not ObjectId.is_valid(user_id):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid user ID"
+        )
+
+    target_user = users_collection.find_one({
+        "_id": ObjectId(user_id)
+    })
+
+    if target_user is None:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
+
+    if target_user.get("role") == "super_admin":
+        raise HTTPException(
+            status_code=403,
+            detail="Super Admin role cannot be changed"
+        )
+
+    users_collection.update_one(
+        {"_id": ObjectId(user_id)},
+        {"$set": {"role": user.role}}
+    )
+
+    return {
+        "message": "User role updated successfully",
+        "new_role": user.role
+    }
+
+
+@app.delete("/admin/users/{user_id}")
+def delete_user(
+    user_id: str,
+    current_user: dict = Depends(get_super_admin)
+):
+
+    if not ObjectId.is_valid(user_id):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid user ID"
+        )
+
+    target_user = users_collection.find_one({
+        "_id": ObjectId(user_id)
+    })
+
+    if target_user is None:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
+
+    if target_user["role"] == "super_admin":
+        raise HTTPException(
+            status_code=403,
+            detail="Super Admin cannot be deleted"
+        )
+
+    users_collection.delete_one({
+        "_id": ObjectId(user_id)
+    })
+
+    return {
+        "message": "User deleted successfully"
+    }
+
 
 def admin_only(current_user: dict = Depends(get_current_user)):
-    if current_user.get("role") != "admin":
+    if current_user.get("role") not in ["admin", "super_admin"]:
         raise HTTPException(
             status_code=403,
             detail="Admin access required"
         )
+
+    return current_user
+
 
     return current_user
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -129,6 +306,8 @@ def get_students(
         students.append(student)
 
     return {"students": students}
+
+
 @app.get("/students/search")
 def search_students(name: str):
 
@@ -426,18 +605,39 @@ class Teacher(BaseModel):
     age:int
     subject:str
     qualification:str
+    class_ids: list[str] = Field(default_factory=list)
+
 
 @app.post("/teachers")
-def create_teacher(teacher:Teacher,admin_user: dict = Depends(admin_only)):
-    teacher_data=teacher.model_dump()
+def create_teacher(teacher: Teacher, admin_user: dict = Depends(admin_only)):
 
-    result=teachers_collection.insert_one(teacher_data)
-    
-    teacher_data["_id"]=str(result.inserted_id)
+    teacher_data = teacher.model_dump()
 
-    return{
-        "message":"teacher create successfully",
-        "teacher":teacher_data
+    for class_id in teacher_data["class_ids"]:
+
+        if not ObjectId.is_valid(class_id):
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid Class ID"
+            )
+
+        school_class = classes_collection.find_one({
+            "_id": ObjectId(class_id)
+        })
+
+        if school_class is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Class not found"
+            )
+
+    result = teachers_collection.insert_one(teacher_data)
+
+    teacher_data["_id"] = str(result.inserted_id)
+
+    return {
+        "message": "Teacher created successfully",
+        "teacher": teacher_data
     }
 
 
@@ -447,61 +647,124 @@ def get_teachers(current_user: dict = Depends(get_current_user)):
     teachers = []
 
     for teacher in teachers_collection.find():
+
+        assigned_classes = []
+
+        for class_id in teacher.get("class_ids", []):
+
+            if not ObjectId.is_valid(class_id):
+                continue
+
+            school_class = classes_collection.find_one({
+                "_id": ObjectId(class_id)
+            })
+
+            if school_class:
+                school_class["_id"] = str(school_class["_id"])
+                assigned_classes.append(school_class)
+
         teacher["_id"] = str(teacher["_id"])
+        teacher["assigned_classes"] = assigned_classes
+
         teachers.append(teacher)
 
     return {"teacher": teachers}
 
 
 @app.get("/teachers/{teacher_id}")
-def get_teacher(teacher_id:str,current_user: dict = Depends(get_current_user)):
+def get_teacher(
+    teacher_id: str,
+    current_user: dict = Depends(get_current_user)
+):
     if not ObjectId.is_valid(teacher_id):
         raise HTTPException(
             status_code=400,
-            detail="invalid teacher id"
+            detail="Invalid Teacher ID"
         )
 
     teacher = teachers_collection.find_one({
-        "_id":ObjectId(teacher_id)
+        "_id": ObjectId(teacher_id)
     })
 
     if teacher is None:
         raise HTTPException(
             status_code=404,
-            detail="Teacher is not found"
+            detail="Teacher not found"
         )
 
+    assigned_classes = []
 
-    teacher["_id"]=str(teacher["_id"])
-    return {"Teacher":teacher}
+    for class_id in teacher.get("class_ids", []):
+
+        if not ObjectId.is_valid(class_id):
+            continue
+
+        school_class = classes_collection.find_one({
+            "_id": ObjectId(class_id)
+        })
+
+        if school_class:
+            school_class["_id"] = str(school_class["_id"])
+            assigned_classes.append(school_class)
+
+    teacher["_id"] = str(teacher["_id"])
+    teacher["assigned_classes"] = assigned_classes
+
+    return {"teacher": teacher}
 
 @app.put("/teachers/{teacher_id}")
-def update_teacher(teacher_id:str,teacher:Teacher,admin_user: dict = Depends(admin_only)):
+def update_teacher(
+    teacher_id: str,
+    teacher: Teacher,
+    admin_user: dict = Depends(admin_only)
+):
     if not ObjectId.is_valid(teacher_id):
         raise HTTPException(
             status_code=400,
-            detail="ID not found"
+            detail="Invalid Teacher ID"
         )
 
+    teacher_data = teacher.model_dump()
+
+    for class_id in teacher_data["class_ids"]:
+
+        if not ObjectId.is_valid(class_id):
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid Class ID"
+            )
+
+        school_class = classes_collection.find_one({
+            "_id": ObjectId(class_id)
+        })
+
+        if school_class is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Class not found"
+            )
+
     result = teachers_collection.replace_one(
-        {"_id":ObjectId(teacher_id)},
-        teacher.model_dump()
+        {"_id": ObjectId(teacher_id)},
+        teacher_data
     )
 
-    if result.matched_count==0:
+    if result.matched_count == 0:
         raise HTTPException(
             status_code=404,
             detail="Teacher not found"
         )
 
-    return{"teacher":"teacher update successfully"}
-
+    return {
+        "message": "Teacher updated successfully"
+    }
 
 class TeacherUpdate(BaseModel):
     name: str | None = None
     age: int | None = None
     subject: str | None = None
     qualification: str | None = None
+    class_ids: list[str] | None = None
 
     model_config = {
         "json_schema_extra": {
@@ -510,11 +773,15 @@ class TeacherUpdate(BaseModel):
     }
 
 @app.patch("/teachers/{teacher_id}")
-def patch_teacher(teacher_id:str,teacher:TeacherUpdate,admin_user: dict = Depends(admin_only)):
+def patch_teacher(
+    teacher_id: str,
+    teacher: TeacherUpdate,
+    admin_user: dict = Depends(admin_only)
+):
     if not ObjectId.is_valid(teacher_id):
         raise HTTPException(
             status_code=400,
-            detail="id not found"
+            detail="Invalid Teacher ID"
         )
 
     update_data = teacher.model_dump(exclude_unset=True)
@@ -522,42 +789,64 @@ def patch_teacher(teacher_id:str,teacher:TeacherUpdate,admin_user: dict = Depend
     if not update_data:
         raise HTTPException(
             status_code=400,
-            detail="Not found"
+            detail="Please provide at least one field"
         )
+
+    if "class_ids" in update_data:
+
+        for class_id in update_data["class_ids"]:
+
+            if not ObjectId.is_valid(class_id):
+                raise HTTPException(
+                    status_code=400,
+                    detail="Invalid Class ID"
+                )
+
+            school_class = classes_collection.find_one({
+                "_id": ObjectId(class_id)
+            })
+
+            if school_class is None:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Class not found"
+                )
 
     result = teachers_collection.update_one(
-        {"_id":ObjectId(teacher_id)},
-        {"$set":update_data}
+        {"_id": ObjectId(teacher_id)},
+        {"$set": update_data}
     )
 
-    if result.matched_count==0:
+    if result.matched_count == 0:
         raise HTTPException(
             status_code=404,
             detail="Teacher not found"
         )
 
-    return{"message":"Teacher update successfully"}
+    return {
+        "message": "Teacher updated successfully"
+    }
 
 
-@app.delete("/teachers/{teacher_id}")
-def delete_teacher(teacher_id:str,admin_user: dict = Depends(admin_only)):
-    if not ObjectId.is_valid(teacher_id):
-        raise HTTPException(
-            status_code=400,
-            detail="ID not found"
-        )
+@app.delete("/classes/{class_id}")
+def delete_class(class_id: str):
 
-    result =teachers_collection.delete_one(
-        {"_id":ObjectId(teacher_id)}
+    if not ObjectId.is_valid(class_id):
+        raise HTTPException(status_code=400, detail="Invalid class ID")
+
+    result = classes_collection.delete_one({
+        "_id": ObjectId(class_id)
+    })
+
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Class not found")
+
+    teachers_collection.update_many(
+        {"class_ids": class_id},
+        {"$pull": {"class_ids": class_id}}
     )
 
-    if result.deleted_count==0:
-        raise HTTPException(
-            status_code=404,
-            detail="Teacher not found"
-        )
-
-    return{"message":"Teacher delete successfully"}
+    return {"message": "Class deleted successfully"}
 
 
 class SchoolClass(BaseModel):
